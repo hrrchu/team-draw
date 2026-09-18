@@ -1,0 +1,515 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Order Draw</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&family=Noto+Sans+KR:wght@400;700&display=swap">
+<style>
+  :root{
+    --ink:#0A0A0B;
+    --paper:#F2F3EF;
+    --mute:#7C808F;
+    --line:#26262B;
+    --c1:#D9FB4B;
+    --c2:#1547F7;
+    --c3:#E840F0;
+    --c4:#80FBF4;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:"Noto Sans KR","Roboto Flex",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  .wrap{
+    height:100%;
+    max-width:1600px;
+    margin:0 auto;
+    padding:16px;
+    padding-block:20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .top{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px 28px;
+    flex-wrap:wrap;
+  }
+
+  /* ── head ── */
+  .eyebrow{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 62,'wght' 700;
+    font-size:.72rem;
+    letter-spacing:.34em;
+    text-transform:uppercase;
+    color:var(--mute);
+    margin:0;
+  }
+  h1{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 145,'wght' 900,'opsz' 144;
+    font-size:clamp(1.9rem,5.4vh,3.4rem);
+    line-height:.9;
+    letter-spacing:-.02em;
+    margin:.12em 0 0;
+    white-space:nowrap;
+  }
+  h1 em{font-style:normal;color:var(--c1)}
+
+  /* ── board ── */
+  .board{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(2,1fr);
+    gap:12px;
+  }
+
+  .slot{
+    --c:var(--line);
+    position:relative;
+    min-height:0;
+    max-width:100%;
+    border:1.5px solid var(--line);
+    border-radius:20px;
+    background:#1212150F;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    transition:border-color .2s,background .2s,transform .2s;
+  }
+  .ord{
+    position:absolute;
+    top:14px; left:16px;
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 70,'wght' 700;
+    font-variant-numeric:tabular-nums;
+    font-size:.78rem;
+    letter-spacing:.2em;
+    color:var(--mute);
+  }
+  .team{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 151,'wght' 900,'opsz' 144;
+    font-size:min(26vh,15vw);
+    line-height:1;
+    color:var(--line);
+    transition:color .15s;
+  }
+  .slot.idle .team{color:#33343B}
+  .slot.rolling{border-color:var(--c1);transform:translateY(-2px)}
+  .slot.rolling .team{color:var(--c1)}
+  .slot.locked{
+    background:var(--c);
+    border-color:var(--c);
+    animation:pop .34s cubic-bezier(.2,1.5,.4,1);
+  }
+  .slot.locked .team{color:var(--ink)}
+  .slot.locked .ord{color:#0A0A0B99}
+  @keyframes pop{0%{transform:scale(.92)}100%{transform:scale(1)}}
+  .slot.last{animation:pop .34s cubic-bezier(.2,1.5,.4,1),glow 1s ease-out .2s 2}
+  @keyframes glow{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 22px transparent}}
+
+  /* ── thrill ── */
+  .board.tense{animation:shake .09s linear infinite}
+  @keyframes shake{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}75%{transform:translate(-1px,1px)}}
+  #flash{
+    position:fixed; inset:0; pointer-events:none; z-index:20;
+    background:var(--c1); opacity:0;
+  }
+  #flash.go{animation:flash .5s ease-out}
+  @keyframes flash{0%{opacity:.85}100%{opacity:0}}
+  #count{
+    position:fixed; inset:0; z-index:30;
+    display:grid; place-items:center;
+    background:#0A0A0BF2;
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 151,'wght' 900,'opsz' 144;
+    font-size:clamp(7rem,38vw,20rem);
+    line-height:1;
+    color:var(--c1);
+  }
+  #count span{animation:tick .62s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes tick{0%{transform:scale(2.2);opacity:0}30%{opacity:1}100%{transform:scale(1);opacity:1}}
+
+  /* ── 결과창 ── */
+  #result{
+    position:fixed; inset:0; z-index:25;
+    display:grid; place-items:center;
+    background:#0A0A0BF7;
+    padding:16px;
+    animation:fade .3s ease-out;
+  }
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{
+    width:min(860px,100%);
+    max-height:100%;
+    display:flex; flex-direction:column; gap:2vh;
+  }
+  .sheet .eyebrow{color:var(--c1)}
+  #rank{
+    list-style:none; margin:0; padding:0;
+    display:flex; flex-direction:column; gap:1vh;
+  }
+  #rank li{
+    --c:var(--c1);
+    display:flex; align-items:center; gap:clamp(14px,2.4vw,28px);
+    padding:1vh clamp(14px,2vw,24px);
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    animation:rise .42s cubic-bezier(.2,1.2,.4,1) backwards;
+  }
+  #rank li:first-child{border-color:var(--c1);background:#D9FB4B14}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  #rank .n{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 70,'wght' 800;
+    font-variant-numeric:tabular-nums;
+    font-size:clamp(1rem,2.6vh,1.5rem);
+    color:var(--mute);
+    min-width:2.2em;
+  }
+  #rank li:first-child .n{color:var(--c1)}
+  #rank .t{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 151,'wght' 900;
+    font-size:clamp(1.8rem,6vh,3.4rem);
+    line-height:1;
+    color:var(--c);
+  }
+  #rank .tag{
+    margin-left:auto;
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 62,'wght' 700;
+    font-size:.72rem; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--mute);
+  }
+  #rank li:first-child .tag{color:var(--c1)}
+
+  /* ── controls ── */
+  .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px 12px}
+  button{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 100,'wght' 800;
+    font-size:20px;
+    letter-spacing:.02em;
+    padding:clamp(9px,1.6vh,15px) clamp(22px,3vw,38px);
+    border-radius:999px;
+    border:1.5px solid var(--c1);
+    background:var(--c1);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .16s,color .16s;
+  }
+  button:hover:not(:disabled){background:var(--ink);color:var(--c1)}
+  button:focus-visible{outline:3px solid var(--c4);outline-offset:3px}
+  button:disabled{opacity:.35;cursor:default}
+  button.ghost{background:transparent;color:var(--paper);border-color:var(--line)}
+  button.ghost:hover:not(:disabled){background:var(--paper);color:var(--ink);border-color:var(--paper)}
+  .status{
+    font-family:"Roboto Flex",sans-serif;
+    font-variation-settings:'wdth' 62,'wght' 600;
+    font-size:.78rem;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--mute);
+    width:100%;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* 세로형 화면(모바일·태블릿)에서는 2열 3행 */
+  @media (max-aspect-ratio:1/1){
+    .board{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr)}
+    .team{font-size:min(17vh,22vw)}
+    .top{align-items:stretch;flex-direction:column}
+    .bar{justify-content:flex-start}
+    .status{text-align:left}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <header>
+      <p class="eyebrow">NHN Design</p>
+      <h1>ORDER <em>DRAW</em></h1>
+    </header>
+
+    <div class="bar">
+      <button id="draw">순서 뽑기</button>
+      <button id="reset" class="ghost">초기화</button>
+      <span class="status" id="status">Ready · 6 teams</span>
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div id="flash"></div>
+  <div id="count" hidden><span></span></div>
+
+  <div id="result" hidden>
+    <div class="sheet">
+      <p class="eyebrow">Final Order</p>
+      <ol id="rank"></ol>
+      <div class="bar" style="justify-content:flex-start">
+        <button id="again">다시 뽑기</button>
+        <button id="close" class="ghost">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TEAMS = ['A','B','C','D','E','F'];
+  const COLOR = {A:'#D9FB4B', B:'#1547F7', C:'#E840F0', D:'#80FBF4', E:'#D9FB4B', F:'#E840F0'};
+  const board = document.getElementById('board');
+  const btnDraw = document.getElementById('draw');
+  const btnReset = document.getElementById('reset');
+  const status = document.getElementById('status');
+  const flash = document.getElementById('flash');
+  const count = document.getElementById('count');
+  const result = document.getElementById('result');
+  const rank = document.getElementById('rank');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let busy = false;
+
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  /* ── 사운드 (라이브러리 없이 WebAudio) ── */
+  let ac, master;
+  function audio(){
+    if (!ac){
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain();
+      master.gain.value = .9;
+      const comp = ac.createDynamicsCompressor();   // 겹쳐 울려도 찢어지지 않게
+      comp.threshold.value = -14; comp.ratio.value = 12; comp.release.value = .25;
+      master.connect(comp).connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();   // 제스처 후에도 잠겨있는 브라우저 대비
+    return ac;
+  }
+
+  // 음 하나. to를 주면 그 주파수로 미끄러짐
+  function tone(freq, {dur = .12, type = 'square', gain = .12, to = 0, delay = 0} = {}){
+    try{
+      const a = audio(), t = a.currentTime + delay;
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + .008);
+      g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g).connect(master);
+      o.start(t); o.stop(t + dur + .02);
+    }catch(e){ /* 사운드는 있으면 좋고 없어도 그만 */ }
+  }
+
+  // 노이즈 — 필터 스윕(라이저/임팩트)이나 크래시 심벌로 씀
+  function noise(dur, {gain = .3, from = 300, to = 5000, type = 'bandpass', q = 3, attack = .85, delay = 0} = {}){
+    try{
+      const a = audio(), t = a.currentTime + delay, n = Math.floor(a.sampleRate * dur);
+      const buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      const src = a.createBufferSource(); src.buffer = buf;
+      const f = a.createBiquadFilter(); f.type = type; f.Q.value = q;
+      f.frequency.setValueAtTime(from, t);
+      f.frequency.exponentialRampToValueAtTime(to, t + dur);
+      const g = a.createGain();
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + dur * attack);
+      g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      src.connect(f).connect(g).connect(master);
+      src.start(t); src.stop(t + dur);
+    }catch(e){}
+  }
+
+  const crash = (dur = 1.2, gain = .38, delay = 0) =>
+    noise(dur, {gain, from: 9000, to: 4000, type: 'highpass', q: .7, attack: .02, delay});
+  const boom = (gain = .55, delay = 0) =>
+    tone(150, {dur: .7, type: 'sine', gain, to: 34, delay});
+  const stab = (root, {delay = 0, gain = .2} = {}) =>      // 장3화음 한 방
+    [1, 1.26, 1.5, 2].forEach(r => tone(root * r, {dur: .34, type: 'sawtooth', gain, delay}));
+
+  const SCALE = [523, 587, 659, 784, 880, 1047];   // 순서가 올라갈수록 음도 올라감
+  const sfx = {
+    tick: () => {
+      const f = 380 + Math.random() * 260;
+      tone(f, {dur: .035, type: 'square', gain: .16});
+      tone(f * 1.51, {dur: .03, type: 'square', gain: .09});
+      noise(.035, {gain: .16, from: 6000, to: 3000, type: 'highpass', q: 1, attack: .03});
+    },
+    count: n => {
+      stab(n === 1 ? 392 : 262, {gain: .17});
+      boom(n === 1 ? .7 : .5);
+      crash(n === 1 ? .8 : .45, .3);
+    },
+    lock: i => {
+      stab(SCALE[i], {gain: .2});
+      tone(SCALE[i] / 4, {dur: .35, type: 'square', gain: .3});
+      crash(.55, .3);
+      boom(.35);
+    },
+    tense: () => {                                  // 라이저 + 사이렌 + 가속 드럼
+      noise(1.1, {gain: .34, from: 260, to: 7000, q: 6});
+      tone(300, {dur: 1.1, type: 'sawtooth', gain: .16, to: 1500});
+      tone(150, {dur: 1.1, type: 'square', gain: .12, to: 750});
+      [0, .22, .4, .55, .68, .79, .88, .95].forEach(d =>
+        tone(90, {dur: .08, type: 'square', gain: .3, delay: d}));
+    },
+    win: () => {
+      crash(2.2, .45);
+      boom(.8);
+      [523, 659, 784, 1047, 1319, 1568].forEach((f, k) =>   // 상승 아르페지오
+        stab(f, {delay: k * .075, gain: .16}));
+      [0, .55, .8].forEach((d, k) => {                       // 팡·파·레
+        stab(1047, {delay: .5 + d, gain: .19});
+        crash(1.1, .3, .5 + d);
+        boom(.5, .5 + d);
+      });
+      tone(65, {dur: 2, type: 'sine', gain: .45, delay: .5});
+    }
+  };
+
+  board.innerHTML = TEAMS.map((t,i) =>
+    `<div class="slot idle"><span class="ord">${String(i+1).padStart(2,'0')}</span><span class="team">${t}</span></div>`
+  ).join('');
+  const slots = [...board.children];
+
+  const shuffle = a => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  function reset(){
+    result.hidden = true;
+    slots.forEach((s,i) => {
+      s.className = 'slot idle';
+      s.style.removeProperty('--c');
+      s.querySelector('.team').textContent = TEAMS[i];
+    });
+    status.textContent = 'Ready · 6 teams';
+  }
+
+  function lock(slot, letter, i, isLast){
+    slot.querySelector('.team').textContent = letter;
+    slot.style.setProperty('--c', COLOR[letter]);
+    slot.className = 'slot locked' + (isLast ? ' last' : '');
+    if (isLast){
+      sfx.win();
+      flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+    } else {
+      sfx.lock(i);
+    }
+  }
+
+  // 공개 차수(k)가 뒤일수록 오래, 끝으로 갈수록 느려지는 룰렛
+  function roll(slot, letter, k, isLast){
+    return new Promise(done => {
+      slot.className = 'slot rolling';
+      if (reduced) { lock(slot, letter, k, isLast); return done(); }
+      const face = slot.querySelector('.team');
+      const dur = 700 + k * 260;
+      let t = 0;
+      (function step(){
+        face.textContent = TEAMS[Math.floor(Math.random() * TEAMS.length)];
+        sfx.tick();
+        const p = t / dur;
+        const gap = 42 + 200 * p * p;
+        t += gap;
+        if (t < dur) setTimeout(step, gap);
+        else { lock(slot, letter, k, isLast); done(); }
+      })();
+    });
+  }
+
+  async function countdown(){
+    if (reduced) return;
+    const face = count.firstElementChild;
+    count.hidden = false;
+    for (const n of [3, 2, 1]){
+      face.textContent = n;
+      face.style.animation = 'none'; void face.offsetWidth; face.style.animation = '';
+      sfx.count(n);
+      await wait(620);
+    }
+    count.hidden = true;
+  }
+
+  async function draw(){
+    if (busy) return;
+    busy = true;
+    btnDraw.disabled = btnReset.disabled = true;
+    reset();
+    const order = shuffle(TEAMS);
+    await countdown();
+    board.classList.add('tense');
+
+    // 6번(꼴찌 슬롯)부터 거꾸로 공개 — 1번이 마지막 클라이맥스
+    for (let k = 0; k < order.length; k++){
+      const i = order.length - 1 - k;
+      const isLast = i === 0;
+      status.textContent = isLast ? 'Final · 1번' : `Drawing · ${i + 1}번`;
+      if (isLast){ sfx.tense(); await wait(1100); }   // 마지막 전, 라이저로 끌어올리기
+      await roll(slots[i], order[i], k, isLast);
+      await wait(isLast ? 0 : 260);
+    }
+
+    board.classList.remove('tense');
+    status.textContent = `결과 · ${order.join(' → ')}`;
+    btnDraw.disabled = btnReset.disabled = false;
+    btnDraw.textContent = '다시 뽑기';
+    busy = false;
+    await wait(reduced ? 200 : 1200);
+    showResult(order);
+  }
+
+  function showResult(order){
+    rank.innerHTML = order.map((t, i) => `
+      <li style="--c:${COLOR[t]};animation-delay:${i * 70}ms">
+        <span class="n">${String(i + 1).padStart(2,'0')}</span>
+        <span class="t">${t}</span>
+        <span class="tag">${i === order.length - 1 ? '마지막' : `${i + 1}번째`}</span>
+      </li>`).join('');
+    result.hidden = false;
+  }
+
+  btnDraw.onclick = draw;
+  btnReset.onclick = () => { if (!busy){ reset(); btnDraw.textContent = '순서 뽑기'; } };
+  document.getElementById('close').onclick = () => { result.hidden = true; };
+  document.getElementById('again').onclick = draw;
+  addEventListener('keydown', e => {
+    if (e.code === 'Escape') result.hidden = true;
+    if (e.code === 'Space' && e.target === document.body){ e.preventDefault(); draw(); }
+  });
+
+  // self-check: open with #test
+  if (location.hash === '#test'){
+    const counts = {};
+    for (let n = 0; n < 6000; n++){
+      const s = shuffle(TEAMS);
+      console.assert(new Set(s).size === 6, 'shuffle lost/duplicated a team', s);
+      counts[s[0]] = (counts[s[0]] || 0) + 1;
+    }
+    Object.entries(counts).forEach(([t,c]) =>
+      console.assert(c > 800 && c < 1200, `first-slot bias for ${t}: ${c}`));
+    console.log('selftest ok', counts);
+  }
+</script>
