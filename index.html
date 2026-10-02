@@ -19,7 +19,7 @@
   :root{
     --ink:#231F20;
     --paper:#FFFFFF;
-    --mute:#231F20B3;
+    --mute:#231F20;
     --line:#231F2029;
     --c1:#69B3E3;
     --c2:#F1729E;
@@ -117,19 +117,19 @@
     font-variation-settings:'wdth' 151,'wght' 900,'opsz' 144;
     font-size:min(26vh,15vw);
     line-height:1;
-    color:var(--line);
+    color:var(--ink);
     transition:color .15s;
   }
-  .slot.idle .team{color:#231F2040}
+  .slot.idle .team{color:var(--ink)}
   .slot.rolling{border-color:var(--c1);transform:translateY(-2px)}
-  .slot.rolling .team{color:var(--c1)}
+  .slot.rolling .team{color:var(--ink)}
   .slot.locked{
     background:var(--c);
     border-color:var(--c);
     animation:pop .34s cubic-bezier(.2,1.5,.4,1);
   }
   .slot.locked .team{color:var(--ink)}
-  .slot.locked .ord{color:var(--ink);opacity:.6}
+  .slot.locked .ord{color:var(--ink)}
   @keyframes pop{0%{transform:scale(.92)}100%{transform:scale(1)}}
   .slot.last{animation:pop .34s cubic-bezier(.2,1.5,.4,1),glow 1s ease-out .2s 2}
   @keyframes glow{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 22px transparent}}
@@ -151,7 +151,7 @@
     font-variation-settings:'wdth' 151,'wght' 900,'opsz' 144;
     font-size:clamp(7rem,38vw,20rem);
     line-height:1;
-    color:var(--c2);
+    color:var(--ink);
   }
   #count span{animation:tick .62s cubic-bezier(.2,1.4,.4,1)}
   @keyframes tick{0%{transform:scale(2.2);opacity:0}30%{opacity:1}100%{transform:scale(1);opacity:1}}
@@ -221,7 +221,7 @@
     border-radius:999px;
     border:1.5px solid var(--c1);
     background:var(--c1);
-    color:var(--paper);
+    color:var(--ink);
     cursor:pointer;
     transition:background .16s,color .16s;
   }
@@ -229,7 +229,8 @@
   button:focus-visible{outline:3px solid var(--c3);outline-offset:3px}
   button:disabled{opacity:.35;cursor:default}
   button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-  button.ghost:hover:not(:disabled){background:var(--c1);color:var(--paper);border-color:var(--c1)}
+  button.ghost:hover:not(:disabled){background:var(--c1);color:var(--ink);border-color:var(--c1)}
+  #close:hover:not(:disabled){background:transparent;color:var(--c1)}
   .status{
     font-family:"Roboto Flex","Pretendard",sans-serif;
     font-variation-settings:'wdth' 62,'wght' 600;
