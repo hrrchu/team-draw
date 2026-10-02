@@ -77,7 +77,7 @@
     margin:.12em 0 0;
     white-space:nowrap;
   }
-  h1 em{font-style:normal;color:var(--c1)}
+  h1 em{font-style:normal;color:var(--ink)}
 
   /* ── board ── */
   .board{
@@ -183,7 +183,7 @@
     border:1.5px solid var(--line);
     animation:rise .42s cubic-bezier(.2,1.2,.4,1) backwards;
   }
-  #rank li:first-child{border-color:var(--c1);background:#69B3E31F}
+  #rank li{border-color:var(--c);background:var(--c)}
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   #rank .n{
     font-family:"Roboto Flex","Pretendard",sans-serif;
@@ -199,7 +199,7 @@
     font-variation-settings:'wdth' 151,'wght' 900;
     font-size:clamp(1.8rem,6vh,3.4rem);
     line-height:1;
-    color:var(--c);
+    color:var(--ink);
   }
   #rank .tag{
     margin-left:auto;
@@ -221,7 +221,7 @@
     border-radius:999px;
     border:1.5px solid var(--c1);
     background:var(--c1);
-    color:var(--ink);
+    color:var(--paper);
     cursor:pointer;
     transition:background .16s,color .16s;
   }
@@ -229,7 +229,7 @@
   button:focus-visible{outline:3px solid var(--c3);outline-offset:3px}
   button:disabled{opacity:.35;cursor:default}
   button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-  button.ghost:hover:not(:disabled){background:var(--c1);color:var(--ink);border-color:var(--c1)}
+  button.ghost:hover:not(:disabled){background:var(--c1);color:var(--paper);border-color:var(--c1)}
   .status{
     font-family:"Roboto Flex","Pretendard",sans-serif;
     font-variation-settings:'wdth' 62,'wght' 600;
@@ -288,7 +288,7 @@
 
 <script>
   const TEAMS = ['A','B','C','D','E','F'];
-  const COLOR = {A:'#69B3E3', B:'#F1729E', C:'#39B54A', D:'#FFD530', E:'#69B3E3', F:'#F1729E'};
+  const COLOR = {A:'#F1729E', B:'#F58A45', C:'#FFD530', D:'#39B54A', E:'#69B3E3', F:'#9A7AD6'};
   const board = document.getElementById('board');
   const btnDraw = document.getElementById('draw');
   const btnReset = document.getElementById('reset');
